@@ -24,6 +24,11 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import GoogleIcon from '@mui/icons-material/Google';
 import TwitterIcon from '@mui/icons-material/Twitter';
 
+// React Hook Form and Yup imports
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
 // Styled container for the whole page, centers content vertically and horizontally
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
@@ -230,6 +235,13 @@ const SocialIconButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
+// Yup validation schema
+const schema = yup.object().shape({
+  email: yup.string().email('Enter a valid email').required('Email is required'),
+  password: yup.string().required('Password is required'),
+  remember: yup.boolean(),
+});
+
 export default function EvooSignInPage() {
   // State to toggle password visibility
   const [showPassword, setShowPassword] = React.useState(false);
@@ -240,6 +252,27 @@ export default function EvooSignInPage() {
   // Theme and media query hooks for responsive adjustments
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // React Hook Form setup
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isValid },
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+      remember: false,
+    },
+  });
+
+  // Handle form submit
+  const onSubmit = data => {
+    // Example: navigate to another page on successful login
+    navigate("/MenClothing");
+  };
 
   return (
     <PageContainer>
@@ -309,81 +342,115 @@ export default function EvooSignInPage() {
             To keep connected with us please login with your personal information by email address and password
           </FormSubtitle>
 
-          {/* Email input with icon */}
-          <StyledTextField
-            fullWidth
-            label="Email"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailOutlinedIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
+          {/* Login Form */}
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            {/* Email input with icon */}
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <StyledTextField
+                  {...field}
+                  fullWidth
+                  label="Email"
+                  variant="outlined"
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailOutlinedIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
 
-          {/* Password input with visibility toggle */}
-          <StyledTextField
-            fullWidth
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LockOutlinedIcon color="action" />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    <VisibilityOutlinedIcon color="action" />
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-          />
+            {/* Password input with visibility toggle */}
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <StyledTextField
+                  {...field}
+                  fullWidth
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  variant="outlined"
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockOutlinedIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          tabIndex={-1}
+                        >
+                          <VisibilityOutlinedIcon color="action" />
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              )}
+            />
 
-          {/* Row with "Remember me" checkbox and "Forgot Password?" link */}
-          <RememberForgotRow>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Checkbox size="small" sx={{ paddingLeft: 0 }} />
-              <RememberMeLabel>Remember me</RememberMeLabel>
+            {/* Row with "Remember me" checkbox and "Forgot Password?" link */}
+            <RememberForgotRow>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Controller
+                  name="remember"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      {...field}
+                      checked={field.value}
+                      size="small"
+                      sx={{ paddingLeft: 0 }}
+                    />
+                  )}
+                />
+                <RememberMeLabel>Remember me</RememberMeLabel>
+              </Stack>
+              <ForgotPasswordLink href="#">Forgot Password?</ForgotPasswordLink>
+            </RememberForgotRow>
+
+            {/* Login and create account buttons */}
+            <Stack direction={isMobile ? "column" : "row"} spacing={isMobile ? 1 : 2} alignItems="center" sx={{ marginBottom: 3 }}>
+              <CustomButton
+                variantType="contained"
+                fullWidth={isMobile}
+                type="submit"
+                disabled={!isValid}
+              >
+                Log in
+              </CustomButton>
+              <Link
+                component="button"
+                variant="body2"
+                sx={{
+                  whiteSpace: 'nowrap',
+                  color: 'black',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' },
+                  width: isMobile ? '100%' : 'auto',
+                  textAlign: isMobile ? 'center' : 'left',
+                }}
+                onClick={() => navigate('/signup')}
+              >
+                Create account
+              </Link>
             </Stack>
-            <ForgotPasswordLink href="#">Forgot Password?</ForgotPasswordLink>
-          </RememberForgotRow>
-
-          {/* Login and create account buttons */}
-          <Stack direction={isMobile ? "column" : "row"} spacing={isMobile ? 1 : 2} alignItems="center" sx={{ marginBottom: 3 }}>
-            <CustomButton
-              variantType="contained"
-              fullWidth={isMobile}
-              onClick={() => navigate("/MenClothing")}
-            >
-              Log in
-            </CustomButton>
-            <Link
-              component="button"
-              variant="body2"
-              sx={{
-                whiteSpace: 'nowrap',
-                color: 'black',
-                fontWeight: 500,
-                textDecoration: 'none',
-                '&:hover': { textDecoration: 'underline' },
-                width: isMobile ? '100%' : 'auto',
-                textAlign: isMobile ? 'center' : 'left',
-              }}
-              onClick={() => navigate('/signup')}
-            >
-              Create account
-            </Link>
-          </Stack>
+          </form>
 
           {/* Social login buttons */}
           <SocialLoginContainer>

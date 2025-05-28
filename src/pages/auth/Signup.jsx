@@ -26,6 +26,11 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import GoogleIcon from '@mui/icons-material/Google';
 import TwitterIcon from '@mui/icons-material/Twitter';
 
+// React Hook Form and Yup imports
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
 // Container for the entire page, centers content vertically and horizontally
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
@@ -213,9 +218,43 @@ const SocialIconButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
+// Yup validation schema for registration form
+const schema = yup.object().shape({
+  fullName: yup.string().required('Full Name is required'),
+  email: yup.string().email('Enter a valid email').required('Email is required'),
+  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  mobile: yup
+    .string()
+    .required('Mobile Number is required')
+    .matches(/^[0-9]{8,15}$/, 'Enter a valid mobile number'),
+  remember: yup.boolean(),
+});
+
 export default function EvooSignUpPage() {
   const [showPassword, setShowPassword] = React.useState(false);
   const navigate = useNavigate();
+
+  // React Hook Form setup
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isValid }
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+      mobile: '',
+      remember: false,
+    },
+  });
+
+  const onSubmit = data => {
+    // Example: Navigate to next page after register
+    navigate("/MenClothing");
+  };
 
   return (
     <PageContainer>
@@ -252,83 +291,141 @@ export default function EvooSignUpPage() {
             To keep connected with us please login with your personal information by email address and password
           </FormSubtitle>
 
-          {/* Input fields */}
-          <StyledTextField
-            fullWidth
-            label="Full Name"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonOutlineIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
+          {/* Registration Form */}
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            {/* Full Name input */}
+            <Controller
+              name="fullName"
+              control={control}
+              render={({ field }) => (
+                <StyledTextField
+                  {...field}
+                  fullWidth
+                  label="Full Name"
+                  variant="outlined"
+                  error={!!errors.fullName}
+                  helperText={errors.fullName?.message}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonOutlineIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
 
-          <StyledTextField
-            fullWidth
-            label="Email"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailOutlinedIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
+            {/* Email input */}
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <StyledTextField
+                  {...field}
+                  fullWidth
+                  label="Email"
+                  variant="outlined"
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailOutlinedIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
 
-          <StyledTextField
-            fullWidth
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LockOutlinedIcon />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  {/* Toggle password visibility */}
-                  <IconButton onClick={() => setShowPassword(!showPassword)}>
-                    <VisibilityOutlinedIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
+            {/* Password input */}
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <StyledTextField
+                  {...field}
+                  fullWidth
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  variant="outlined"
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockOutlinedIcon />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {/* Toggle password visibility */}
+                        <IconButton onClick={() => setShowPassword(!showPassword)} tabIndex={-1}>
+                          <VisibilityOutlinedIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
 
-          <StyledTextField
-            fullWidth
-            label="Mobile Number"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PhoneIphoneIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
+            {/* Mobile Number input */}
+            <Controller
+              name="mobile"
+              control={control}
+              render={({ field }) => (
+                <StyledTextField
+                  {...field}
+                  fullWidth
+                  label="Mobile Number"
+                  variant="outlined"
+                  error={!!errors.mobile}
+                  helperText={errors.mobile?.message}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIphoneIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
 
-          {/* Remember me checkbox and forgot password link */}
-          <RememberForgotRow>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Checkbox size="small" sx={{ paddingLeft: 0 }} />
-              <Typography fontSize="0.875rem">Remember me</Typography>
-            </Stack>
-            <Link href="#" underline="hover" fontSize="0.875rem" color="text.secondary">
-              Forgot Password?
-            </Link>
-          </RememberForgotRow>
+            {/* Remember me checkbox and forgot password link */}
+            <RememberForgotRow>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Controller
+                  name="remember"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      {...field}
+                      checked={field.value}
+                      size="small"
+                      sx={{ paddingLeft: 0 }}
+                    />
+                  )}
+                />
+                <Typography fontSize="0.875rem">Remember me</Typography>
+              </Stack>
+              <Link href="#" underline="hover" fontSize="0.875rem" color="text.secondary">
+                Forgot Password?
+              </Link>
+            </RememberForgotRow>
 
-          {/* Submit button */}
-          <CustomButton variantType="contained" fullWidth onClick={() => navigate("/MenClothing")}>
-            Create account
-          </CustomButton>
+            {/* Submit button */}
+            <CustomButton
+              variantType="contained"
+              fullWidth
+              type="submit"
+              disabled={!isValid}
+            >
+              Create account
+            </CustomButton>
+          </form>
 
           {/* Social login section */}
           <SocialLoginContainer>
